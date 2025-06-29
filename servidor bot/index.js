@@ -7,19 +7,33 @@ const app = express();
 app.use(express.json());
 
 client.on('qr', qr => {
-    console.log('Escanea este QR con tu WhatsApp');
+    console.log('\n==============================');
+    console.log('   📱 Escanea este código QR   ');
+    console.log('==============================\n');
     qrcode.generate(qr, { small: true });
+    console.log('\n==============================\n');
 });
 
 client.on('ready', () => {
-    console.log('✅ WhatsApp conectado correctamente.');
+    console.log('\n==============================');
+    console.log('   ✅ WhatsApp conectado correctamente.');
+    console.log('==============================\n');
 });
 
 client.initialize();
 
 app.post('/send', async (req, res) => {
     const { numero, mensaje } = req.body;
-    const chatId = numero + '@c.us';
+
+    // Validaciones básicas
+    if (!numero || typeof numero !== 'string' || !numero.match(/^\d{10,15}$/)) {
+        return res.status(400).json({ status: 'error', error: 'Número inválido. Debe ser un string numérico de 10 a 15 dígitos.' });
+    }
+    if (!mensaje || typeof mensaje !== 'string' || mensaje.trim().length === 0) {
+        return res.status(400).json({ status: 'error', error: 'Mensaje inválido. Debe ser un string no vacío.' });
+    }
+
+    const chatId = `${numero}@c.us`;
 
     try {
         await client.sendMessage(chatId, mensaje);
